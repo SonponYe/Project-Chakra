@@ -120,7 +120,9 @@ create index reviews_worker_id_idx on reviews (worker_id);
 -- ---------------------------------------------------------------------------
 -- updated_at trigger for worker_module_data
 -- ---------------------------------------------------------------------------
-create or replace function set_updated_at()
+-- prefixed to avoid colliding with a same-named trigger function another
+-- app sharing this database might define
+create or replace function cb_set_updated_at()
 returns trigger
 language plpgsql
 as $$
@@ -132,4 +134,4 @@ $$;
 
 create trigger worker_module_data_set_updated_at
   before update on worker_module_data
-  for each row execute function set_updated_at();
+  for each row execute function cb_set_updated_at();
