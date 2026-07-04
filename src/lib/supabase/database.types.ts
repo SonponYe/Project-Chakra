@@ -186,7 +186,24 @@ export interface Database {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      cb_create_service_type_draft: {
+        Args: {
+          p_name: string;
+          p_slug: string;
+          p_archetype: ServiceTypeArchetype;
+          p_module_config: ModuleConfigEntry[];
+        };
+        Returns: string;
+      };
+      cb_update_service_type_draft_modules: {
+        Args: {
+          p_service_type_id: string;
+          p_module_config: ModuleConfigEntry[];
+        };
+        Returns: undefined;
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };
