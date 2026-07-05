@@ -9,6 +9,7 @@ import { ARCHETYPES, MODULE_REGISTRY, slugify } from "@/lib/modules/registry";
 import ModuleChecklist from "../ModuleChecklist";
 import { createServiceTypeAction } from "../actions";
 import type { ServiceTypeArchetype } from "@/lib/supabase/database.types";
+import type { CustomFieldDefinition } from "@/lib/modules/schemas";
 
 const archetypeKeys = ARCHETYPES.map((a) => a.key) as [ServiceTypeArchetype, ...ServiceTypeArchetype[]];
 const moduleKeyValues = MODULE_REGISTRY.map((m) => m.key) as [
@@ -29,6 +30,7 @@ export default function NewServiceTypeForm() {
   const router = useRouter();
   const [slugTouched, setSlugTouched] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [customFieldDefinitions, setCustomFieldDefinitions] = useState<CustomFieldDefinition[]>([]);
 
   const defaultArchetype = ARCHETYPES[0];
 
@@ -68,7 +70,7 @@ export default function NewServiceTypeForm() {
 
   async function onSubmit(values: FormValues) {
     setSubmitError(null);
-    const result = await createServiceTypeAction(values);
+    const result = await createServiceTypeAction({ ...values, customFieldDefinitions });
     if (!result.ok) {
       setSubmitError(result.error);
       return;
@@ -130,7 +132,12 @@ export default function NewServiceTypeForm() {
         control={control}
         name="moduleKeys"
         render={({ field }) => (
-          <ModuleChecklist selected={field.value} onChange={field.onChange} />
+          <ModuleChecklist
+            selected={field.value}
+            onChange={field.onChange}
+            customFieldDefinitions={customFieldDefinitions}
+            onCustomFieldDefinitionsChange={setCustomFieldDefinitions}
+          />
         )}
       />
       {errors.moduleKeys && (

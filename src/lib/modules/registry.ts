@@ -115,10 +115,16 @@ export function getArchetypeDefinition(key: ServiceTypeArchetype): ArchetypeDefi
 }
 
 // Ensures `contact` is present exactly once, appended last if the caller didn't include it.
-export function buildModuleConfig(moduleKeys: ModuleKey[]): ModuleConfigEntry[] {
+export function buildModuleConfig(
+  moduleKeys: ModuleKey[],
+  settingsByKey?: Partial<Record<ModuleKey, Record<string, unknown>>>
+): ModuleConfigEntry[] {
   const withoutContact = moduleKeys.filter((k) => k !== "contact");
   const ordered: ModuleKey[] = [...withoutContact, "contact"];
-  return ordered.map((module_key) => ({ module_key }));
+  return ordered.map((module_key) => ({
+    module_key,
+    ...(settingsByKey?.[module_key] ? { settings: settingsByKey[module_key] } : {}),
+  }));
 }
 
 export function slugify(input: string): string {

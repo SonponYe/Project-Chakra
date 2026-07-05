@@ -184,6 +184,42 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["reviews"]["Insert"]>;
         Relationships: [];
       };
+      worker_availability: {
+        Row: {
+          id: string;
+          worker_id: string;
+          day_of_week: number;
+          start_time: string;
+          end_time: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          worker_id: string;
+          day_of_week: number;
+          start_time: string;
+          end_time: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["worker_availability"]["Insert"]>;
+        Relationships: [];
+      };
+      worker_blocked_dates: {
+        Row: {
+          id: string;
+          worker_id: string;
+          blocked_date: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          worker_id: string;
+          blocked_date: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["worker_blocked_dates"]["Insert"]>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -202,6 +238,21 @@ export interface Database {
           p_module_config: ModuleConfigEntry[];
         };
         Returns: undefined;
+      };
+      cb_save_worker_module_data: {
+        Args: {
+          p_worker_id: string;
+          p_module_key: ModuleKey;
+          p_data: Record<string, unknown>;
+        };
+        Returns: undefined;
+      };
+      cb_create_service_type_version: {
+        Args: {
+          p_service_type_id: string;
+          p_module_config: ModuleConfigEntry[];
+        };
+        Returns: string;
       };
     };
     Enums: Record<string, never>;

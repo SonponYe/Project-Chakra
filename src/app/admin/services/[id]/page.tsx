@@ -1,7 +1,10 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getModuleDefinition } from "@/lib/modules/registry";
 import EditDraftModules from "./EditDraftModules";
+import ProposeNewVersion from "./ProposeNewVersion";
+import { extractCustomFieldDefinitions } from "@/lib/modules/schemas";
 import type { ModuleConfigEntry } from "@/lib/supabase/database.types";
 
 export default async function ServiceTypeDetailPage({
@@ -29,6 +32,7 @@ export default async function ServiceTypeDetailPage({
     : { data: null };
 
   const moduleConfig = (version?.module_config ?? []) as ModuleConfigEntry[];
+  const customFieldDefinitions = extractCustomFieldDefinitions(moduleConfig);
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-10">
@@ -42,11 +46,19 @@ export default async function ServiceTypeDetailPage({
         </span>
       </div>
 
+      <Link
+        href={`/admin/services/${serviceType.id}/workers`}
+        className="mt-4 inline-block rounded-md border border-neutral-300 px-3 py-1.5 text-xs font-medium hover:bg-neutral-50"
+      >
+        Manage workers
+      </Link>
+
       {serviceType.status === "draft" ? (
         <div className="mt-8">
           <EditDraftModules
             serviceTypeId={serviceType.id}
             initialModuleKeys={moduleConfig.map((m) => m.module_key)}
+            initialCustomFieldDefinitions={customFieldDefinitions}
           />
         </div>
       ) : (
@@ -54,7 +66,6 @@ export default async function ServiceTypeDetailPage({
           <p className="text-sm font-medium text-neutral-700">Locked module layout</p>
           <p className="mt-1 text-xs text-neutral-500">
             This service type is standardized — every worker in it shares this exact profile shape.
-            Changing it now requires a versioned update (a later phase), not a direct edit.
           </p>
           <ul className="mt-3 flex flex-col gap-2">
             {moduleConfig.map((m) => {
@@ -70,6 +81,14 @@ export default async function ServiceTypeDetailPage({
               );
             })}
           </ul>
+
+          <div className="mt-4">
+            <ProposeNewVersion
+              serviceTypeId={serviceType.id}
+              currentModuleKeys={moduleConfig.map((m) => m.module_key)}
+              currentCustomFieldDefinitions={customFieldDefinitions}
+            />
+          </div>
         </div>
       )}
     </main>
