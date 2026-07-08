@@ -30,17 +30,25 @@ export default async function WorkerDashboardPage() {
     .eq("id", role.workerId)
     .single();
 
+  if (!worker) {
+    throw new Error("Worker record not found for the signed-in user.");
+  }
+
   const { data: serviceType } = await supabase
     .from("service_types")
     .select("id, name, slug, status, current_version_id")
-    .eq("id", worker!.service_type_id)
+    .eq("id", worker.service_type_id)
     .single();
 
-  const { data: version } = serviceType!.current_version_id
+  if (!serviceType) {
+    throw new Error("Service type not found or not visible to this worker (check RLS).");
+  }
+
+  const { data: version } = serviceType.current_version_id
     ? await supabase
         .from("service_type_versions")
         .select("module_config")
-        .eq("id", serviceType!.current_version_id)
+        .eq("id", serviceType.current_version_id)
         .single()
     : { data: null };
 
@@ -51,7 +59,7 @@ export default async function WorkerDashboardPage() {
   const { data: moduleDataRows } = await supabase
     .from("worker_module_data")
     .select("module_key, data")
-    .eq("worker_id", worker!.id);
+    .eq("worker_id", worker.id);
 
   const dataByModule = new Map<ModuleKey, unknown>(
     (moduleDataRows ?? []).map((r) => [r.module_key, r.data])
@@ -62,16 +70,16 @@ export default async function WorkerDashboardPage() {
 
   const [availabilityResult, blockedDatesResult, bookingsResult, reviewsResult] = await Promise.all([
     hasBooking
-      ? supabase.from("worker_availability").select("day_of_week, start_time, end_time").eq("worker_id", worker!.id)
+      ? supabase.from("worker_availability").select("day_of_week, start_time, end_time").eq("worker_id", worker.id)
       : Promise.resolve({ data: [] as { day_of_week: number; start_time: string; end_time: string }[] }),
     hasBooking
-      ? supabase.from("worker_blocked_dates").select("id, blocked_date").eq("worker_id", worker!.id)
+      ? supabase.from("worker_blocked_dates").select("id, blocked_date").eq("worker_id", worker.id)
       : Promise.resolve({ data: [] as { id: string; blocked_date: string }[] }),
     hasBooking
       ? supabase
           .from("bookings")
           .select("id, requester_name, requester_contact, note, requested_slot, status")
-          .eq("worker_id", worker!.id)
+          .eq("worker_id", worker.id)
           .order("requested_slot", { ascending: true })
       : Promise.resolve({
           data: [] as {
@@ -87,7 +95,7 @@ export default async function WorkerDashboardPage() {
       ? supabase
           .from("reviews")
           .select("id, rating, text, worker_response, created_at")
-          .eq("worker_id", worker!.id)
+          .eq("worker_id", worker.id)
           .order("created_at", { ascending: false })
       : Promise.resolve({
           data: [] as {
@@ -121,21 +129,21 @@ export default async function WorkerDashboardPage() {
     <main className="mx-auto max-w-2xl px-4 py-10">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">{worker!.display_name}</h1>
+          <h1 className="text-2xl font-semibold">{worker.display_name}</h1>
           <p className="mt-1 text-sm text-neutral-500">
-            {serviceType!.name} — {serviceType!.status}
+            {serviceType.name} — {serviceType.status}
           </p>
         </div>
-        {serviceType!.status === "standardized" && (
+        {serviceType.status === "standardized" && (
           <Link
-            href={`/services/${serviceType!.slug}/${worker!.id}`}
+            href={`/services/${serviceType.slug}/${worker.id}`}
             className="text-xs font-medium text-neutral-500 underline"
           >
             View public profile
           </Link>
         )}
       </div>
-      {serviceType!.status === "draft" && (
+      {serviceType.status === "draft" && (
         <p className="mt-2 rounded-md bg-amber-50 p-3 text-xs text-amber-800">
           Saving any section below locks this service type&apos;s layout for every worker in it.
         </p>
@@ -151,21 +159,21 @@ export default async function WorkerDashboardPage() {
               <h2 className="text-lg font-semibold">{def.label}</h2>
               <div className="mt-3">
                 {m.module_key === "gallery" && (
-                  <GalleryAdminForm workerId={worker!.id} initialData={data} />
+                  <GalleryAdminForm workerId={worker.id} initialData={data} />
                 )}
                 {m.module_key === "offering_list" && (
-                  <OfferingListAdminForm workerId={worker!.id} initialData={data} />
+                  <OfferingListAdminForm workerId={worker.id} initialData={data} />
                 )}
                 {m.module_key === "stats_track_record" && (
-                  <StatsTrackRecordAdminForm workerId={worker!.id} initialData={data} />
+                  <StatsTrackRecordAdminForm workerId={worker.id} initialData={data} />
                 )}
                 {m.module_key === "case_studies" && (
-                  <CaseStudiesAdminForm workerId={worker!.id} initialData={data} />
+                  <CaseStudiesAdminForm workerId={worker.id} initialData={data} />
                 )}
                 {m.module_key === "booking_availability" && (
                   <>
                     <BookingAvailabilityAdminForm
-                      workerId={worker!.id}
+                      workerId={worker.id}
                       initialData={data}
                       initialAvailability={(availabilityResult.data ?? []).map((a) => ({
                         dayOfWeek: a.day_of_week,
@@ -186,14 +194,14 @@ export default async function WorkerDashboardPage() {
                   </>
                 )}
                 {m.module_key === "reviews" && (
-                  <ReviewsAdminForm workerId={worker!.id} initialData={data} reviews={reviewRows} />
+                  <ReviewsAdminForm workerId={worker.id} initialData={data} reviews={reviewRows} />
                 )}
                 {m.module_key === "contact" && (
-                  <ContactAdminForm workerId={worker!.id} initialData={data} />
+                  <ContactAdminForm workerId={worker.id} initialData={data} />
                 )}
                 {m.module_key === "custom_fields" && (
                   <CustomFieldsAdminForm
-                    workerId={worker!.id}
+                    workerId={worker.id}
                     initialData={data}
                     fieldDefinitions={customFieldDefinitions}
                   />

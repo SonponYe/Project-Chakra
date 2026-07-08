@@ -82,6 +82,21 @@ as $$
   select cb_is_admin_for_service_type(cb_worker_service_type_id(target_worker_id));
 $$;
 
+-- a worker needs to read their own service type/version while it's still
+-- draft (i.e. before their first save locks it) to render their dashboard
+create or replace function cb_is_worker_of_service_type(target_service_type_id uuid)
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select exists (
+    select 1 from workers
+    where service_type_id = target_service_type_id and user_id = auth.uid()
+  );
+$$;
+
 -- a worker/service type is visible to the public once the category is
 -- standardized (locked) and the worker is active
 create or replace function cb_is_publicly_visible_worker(target_worker_id uuid)
@@ -175,7 +190,9 @@ create policy admins_delete on admins
 -- ---------------------------------------------------------------------------
 create policy service_types_select on service_types
   for select using (
-    status = 'standardized' or cb_is_admin_for_service_type(id)
+    status = 'standardized'
+    or cb_is_admin_for_service_type(id)
+    or cb_is_worker_of_service_type(id)
   );
 
 create policy service_types_insert on service_types
@@ -193,6 +210,7 @@ create policy service_types_delete on service_types
 create policy service_type_versions_select on service_type_versions
   for select using (
     cb_is_admin_for_service_type(service_type_id)
+    or cb_is_worker_of_service_type(service_type_id)
     or exists (
       select 1 from service_types st
       where st.id = service_type_id and st.status = 'standardized'
