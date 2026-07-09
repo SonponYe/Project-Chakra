@@ -6,6 +6,7 @@ import ModuleChecklist from "../ModuleChecklist";
 import { updateServiceTypeDraftModulesAction } from "../actions";
 import type { ModuleKey } from "@/lib/supabase/database.types";
 import type { CustomFieldDefinition } from "@/lib/modules/schemas";
+import { btnClass } from "@/components/ui/button";
 
 export default function EditDraftModules({
   serviceTypeId,
@@ -54,14 +55,14 @@ export default function EditDraftModules({
         onCustomFieldDefinitionsChange={setCustomFieldDefinitions}
       />
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      {saved && <p className="text-sm text-green-700">Saved.</p>}
+      {error && <p className="text-[13px] text-red-400">{error}</p>}
+      {saved && <p className="text-[13px] text-emerald">Saved.</p>}
 
       <button
         type="button"
         onClick={handleSave}
         disabled={saving || moduleKeys.length === 0}
-        className="self-start rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+        className={`${btnClass("solid", "md")} self-start`}
       >
         {saving ? "Saving…" : "Save changes"}
       </button>

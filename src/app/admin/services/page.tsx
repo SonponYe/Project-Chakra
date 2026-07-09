@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserRole } from "@/lib/auth";
+import Seal from "@/components/ui/Seal";
+import { btnClass } from "@/components/ui/button";
 
 export default async function AdminServicesPage() {
   const supabase = await createClient();
@@ -10,6 +12,12 @@ export default async function AdminServicesPage() {
     .from("service_types")
     .select("id, name, slug, archetype, status")
     .order("created_at", { ascending: false });
+
+  const { data: workerCounts } = await supabase.from("workers").select("service_type_id");
+  const countByType = new Map<string, number>();
+  for (const w of workerCounts ?? []) {
+    countByType.set(w.service_type_id, (countByType.get(w.service_type_id) ?? 0) + 1);
+  }
 
   const isSuperAdmin = role.kind === "admin" && role.role === "super_admin";
 
@@ -22,68 +30,67 @@ export default async function AdminServicesPage() {
     : null;
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10">
-      <div className="flex items-center justify-between">
+    <main className="mx-auto max-w-3xl px-6 py-12">
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold">Service types</h1>
-          <p className="mt-1 text-sm text-neutral-500">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-muted">Admin</p>
+          <h1 className="mt-2 font-display text-2xl font-medium">Service types</h1>
+          <p className="mt-1.5 text-[13.5px] text-muted">
             Draft types lock the moment their first worker&apos;s data is saved.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           {isSuperAdmin && (
-            <Link
-              href="/admin/admins"
-              className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-50"
-            >
+            <Link href="/admin/admins" className={btnClass("ghost", "sm")}>
               Admins
             </Link>
           )}
-          <Link
-            href="/admin/services/new"
-            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white"
-          >
+          <Link href="/admin/services/new" className={btnClass("solid", "sm")}>
             New service type
           </Link>
         </div>
       </div>
 
       {stats && (
-        <div className="mt-6 grid grid-cols-3 gap-3">
-          <div className="rounded-md border border-neutral-200 bg-white p-3 text-center">
-            <p className="text-lg font-semibold">{stats[0].count ?? 0}</p>
-            <p className="text-xs text-neutral-500">Workers</p>
+        <div className="mt-8 grid grid-cols-3 gap-3">
+          <div className="rounded-md border border-hairline bg-surface p-4 text-center">
+            <p className="font-display text-xl tabular-nums">{stats[0].count ?? 0}</p>
+            <p className="mt-1 text-[11px] uppercase tracking-wide text-muted">Workers</p>
           </div>
-          <div className="rounded-md border border-neutral-200 bg-white p-3 text-center">
-            <p className="text-lg font-semibold">{stats[1].count ?? 0}</p>
-            <p className="text-xs text-neutral-500">Bookings</p>
+          <div className="rounded-md border border-hairline bg-surface p-4 text-center">
+            <p className="font-display text-xl tabular-nums">{stats[1].count ?? 0}</p>
+            <p className="mt-1 text-[11px] uppercase tracking-wide text-muted">Bookings</p>
           </div>
-          <div className="rounded-md border border-neutral-200 bg-white p-3 text-center">
-            <p className="text-lg font-semibold">{stats[2].count ?? 0}</p>
-            <p className="text-xs text-neutral-500">Reviews</p>
+          <div className="rounded-md border border-hairline bg-surface p-4 text-center">
+            <p className="font-display text-xl tabular-nums">{stats[2].count ?? 0}</p>
+            <p className="mt-1 text-[11px] uppercase tracking-wide text-muted">Reviews</p>
           </div>
         </div>
       )}
 
-      <ul className="mt-6 divide-y divide-neutral-200 rounded-md border border-neutral-200 bg-white">
+      <div className="mt-8 flex flex-col gap-2.5">
         {serviceTypes?.length ? (
           serviceTypes.map((st) => (
-            <li key={st.id}>
-              <Link
-                href={`/admin/services/${st.id}`}
-                className="flex items-center justify-between px-4 py-3 text-sm hover:bg-neutral-50"
-              >
-                <span>{st.name}</span>
-                <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs uppercase tracking-wide text-neutral-600">
-                  {st.status}
-                </span>
-              </Link>
-            </li>
+            <Link
+              key={st.id}
+              href={`/admin/services/${st.id}`}
+              className="flex items-center justify-between gap-4 rounded-md border border-hairline bg-surface px-5 py-4 transition-colors hover:border-emerald-dim"
+            >
+              <div>
+                <p className="text-[14.5px] font-medium text-ink">{st.name}</p>
+                <p className="mt-0.5 text-[12px] tabular-nums text-muted">
+                  {countByType.get(st.id) ?? 0} {countByType.get(st.id) === 1 ? "worker" : "workers"}
+                </p>
+              </div>
+              <Seal status={st.status} />
+            </Link>
           ))
         ) : (
-          <li className="px-4 py-6 text-sm text-neutral-500">No service types yet.</li>
+          <p className="rounded-md border border-dashed border-muted/30 px-5 py-6 text-center text-[13px] text-muted">
+            No service types yet.
+          </p>
         )}
-      </ul>
+      </div>
     </main>
   );
 }

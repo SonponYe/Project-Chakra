@@ -10,6 +10,8 @@ import ModuleChecklist from "../ModuleChecklist";
 import { createServiceTypeAction } from "../actions";
 import type { ServiceTypeArchetype } from "@/lib/supabase/database.types";
 import type { CustomFieldDefinition } from "@/lib/modules/schemas";
+import { btnClass } from "@/components/ui/button";
+import { FIELD } from "@/components/ui/card";
 
 const archetypeKeys = ARCHETYPES.map((a) => a.key) as [ServiceTypeArchetype, ...ServiceTypeArchetype[]];
 const moduleKeyValues = MODULE_REGISTRY.map((m) => m.key) as [
@@ -79,20 +81,20 @@ export default function NewServiceTypeForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-7">
       <div>
-        <label className="text-sm font-medium text-neutral-700">Name</label>
+        <label className="text-[11px] font-semibold uppercase tracking-wide text-muted">Name</label>
         <input
           {...register("name")}
           onChange={(e) => handleNameChange(e.target.value)}
           placeholder="Hairdressing"
-          className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className={`mt-1.5 w-full ${FIELD}`}
         />
-        {errors.name && <p className="mt-1 text-xs text-red-600">{errors.name.message}</p>}
+        {errors.name && <p className="mt-1 text-[12px] text-red-400">{errors.name.message}</p>}
       </div>
 
       <div>
-        <label className="text-sm font-medium text-neutral-700">Slug</label>
+        <label className="text-[11px] font-semibold uppercase tracking-wide text-muted">Slug</label>
         <input
           {...register("slug")}
           onChange={(e) => {
@@ -100,29 +102,29 @@ export default function NewServiceTypeForm() {
             setValue("slug", e.target.value);
           }}
           placeholder="hairdressing"
-          className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className={`mt-1.5 w-full ${FIELD}`}
         />
-        {errors.slug && <p className="mt-1 text-xs text-red-600">{errors.slug.message}</p>}
+        {errors.slug && <p className="mt-1 text-[12px] text-red-400">{errors.slug.message}</p>}
       </div>
 
       <div>
-        <label className="text-sm font-medium text-neutral-700">Archetype</label>
-        <div className="mt-2 grid gap-2 sm:grid-cols-2">
+        <label className="text-[11px] font-semibold uppercase tracking-wide text-muted">Archetype</label>
+        <div className="mt-2.5 grid gap-2.5 sm:grid-cols-2">
           {ARCHETYPES.map((a) => (
             <button
               key={a.key}
               type="button"
               onClick={() => handleArchetypeChange(a.key)}
-              className={`rounded-md border px-3 py-2 text-left text-sm ${
+              className={`rounded-md border px-3.5 py-3 text-left transition-colors ${
                 archetype === a.key
-                  ? "border-neutral-900 bg-neutral-900 text-white"
-                  : "border-neutral-300 hover:bg-neutral-50"
+                  ? "border-emerald bg-emerald-tint"
+                  : "border-hairline bg-surface hover:border-emerald-dim"
               }`}
             >
-              <span className="block font-medium">{a.label}</span>
-              <span className={`block text-xs ${archetype === a.key ? "text-neutral-300" : "text-neutral-500"}`}>
-                {a.description}
+              <span className={`block text-[13.5px] font-medium ${archetype === a.key ? "text-emerald" : "text-ink"}`}>
+                {a.label}
               </span>
+              <span className="mt-0.5 block text-[12px] text-muted">{a.description}</span>
             </button>
           ))}
         </div>
@@ -141,20 +143,16 @@ export default function NewServiceTypeForm() {
         )}
       />
       {errors.moduleKeys && (
-        <p className="text-xs text-red-600">{errors.moduleKeys.message as string}</p>
+        <p className="text-[12px] text-red-400">{errors.moduleKeys.message as string}</p>
       )}
 
-      <p className="text-xs text-neutral-400">
+      <p className="text-[12px] text-muted/80">
         Starting from the {currentArchetypeDef.label} preset — adjust modules above before saving.
       </p>
 
-      {submitError && <p className="text-sm text-red-600">{submitError}</p>}
+      {submitError && <p className="text-[13px] text-red-400">{submitError}</p>}
 
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-      >
+      <button type="submit" disabled={isSubmitting} className={`${btnClass("solid", "md")} self-start`}>
         {isSubmitting ? "Saving…" : "Save as draft"}
       </button>
     </form>

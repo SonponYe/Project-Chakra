@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Trash2, Upload } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { uploadWorkerImage } from "@/lib/upload";
 import { saveWorkerModuleDataAction } from "@/app/dashboard/actions";
 import { galleryDataSchema, type GalleryData } from "@/lib/modules/schemas";
+import { btnClass } from "@/components/ui/button";
 
 export default function GalleryAdminForm({
   workerId,
@@ -62,7 +63,7 @@ export default function GalleryAdminForm({
     <div className="flex flex-col gap-4">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {images.map((img, i) => (
-          <div key={img.url} className="rounded-md border border-neutral-200 bg-white p-2">
+          <div key={img.url} className="rounded-md border border-hairline bg-elevated p-2.5">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={img.url} alt={img.caption ?? ""} className="h-24 w-full rounded object-cover" />
             <input
@@ -70,9 +71,9 @@ export default function GalleryAdminForm({
               placeholder="Caption"
               value={img.caption ?? ""}
               onChange={(e) => updateImage(i, { caption: e.target.value })}
-              className="mt-2 w-full rounded border border-neutral-200 px-2 py-1 text-xs"
+              className="mt-2 w-full rounded border border-hairline bg-surface px-2 py-1 text-xs text-ink placeholder:text-muted/70 focus:border-emerald focus:outline-none"
             />
-            <label className="mt-1 flex items-center gap-1 text-xs text-neutral-500">
+            <label className="mt-1.5 flex items-center gap-1.5 text-xs text-muted">
               <input
                 type="checkbox"
                 checked={img.isBeforeAfter ?? false}
@@ -83,7 +84,7 @@ export default function GalleryAdminForm({
             <button
               type="button"
               onClick={() => removeImage(i)}
-              className="mt-1 flex items-center gap-1 text-xs text-red-600"
+              className="mt-1.5 flex items-center gap-1 text-xs text-red-400 transition-colors hover:text-red-300"
             >
               <Trash2 size={12} /> Remove
             </button>
@@ -91,19 +92,15 @@ export default function GalleryAdminForm({
         ))}
       </div>
 
-      <div>
-        <input type="file" accept="image/*" onChange={handleFileChange} disabled={uploading} />
-        {uploading && <p className="text-xs text-neutral-500">Uploading…</p>}
-      </div>
+      <label className={`${btnClass("ghost", "sm")} w-fit cursor-pointer`}>
+        <Upload size={13} />
+        {uploading ? "Uploading…" : "Add photo"}
+        <input type="file" accept="image/*" onChange={handleFileChange} disabled={uploading} className="hidden" />
+      </label>
 
-      {message && <p className="text-sm text-neutral-600">{message}</p>}
+      {message && <p className="text-[13px] text-muted">{message}</p>}
 
-      <button
-        type="button"
-        onClick={handleSave}
-        disabled={saving}
-        className="self-start rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-      >
+      <button type="button" onClick={handleSave} disabled={saving} className={`${btnClass("solid", "md")} self-start`}>
         {saving ? "Saving…" : "Save gallery"}
       </button>
     </div>

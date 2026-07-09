@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { bookingAvailabilityDataSchema } from "@/lib/modules/schemas";
 import type { Slot } from "@/lib/booking/slots";
 import { requestBookingAction } from "@/app/services/[slug]/[workerId]/actions";
+import { btnClass } from "@/components/ui/button";
 
 export default function BookingAvailabilityPublicView({
   data,
@@ -40,49 +41,63 @@ export default function BookingAvailabilityPublicView({
     });
 
     setSubmitting(false);
-    setMessage(result.ok ? "Request sent! The worker will confirm soon." : result.error);
+    setMessage(result.ok ? "Request sent — you'll hear back soon." : result.error);
     if (result.ok) setSelected(null);
   }
 
   return (
-    <section>
-      <h2 className="text-lg font-semibold">Book a slot</h2>
-      {parsed.success && parsed.data.note && (
-        <p className="mt-1 text-sm text-neutral-500">{parsed.data.note}</p>
-      )}
+    <div>
+      {parsed.success && parsed.data.note && <p className="mb-5 text-[13.5px] text-muted">{parsed.data.note}</p>}
 
       {slots.length === 0 ? (
-        <p className="mt-3 text-sm text-neutral-500">No open slots right now.</p>
+        <p className="text-[13.5px] text-muted">No open slots right now.</p>
       ) : (
-        <div className="mt-3 flex flex-wrap gap-2">
-          {slots.map((s) => (
-            <motion.button
-              key={s.start.toISOString()}
-              type="button"
-              onClick={() => setSelected(s)}
-              whileTap={{ scale: 0.97 }}
-              className={`rounded-md border px-3 py-1.5 text-xs font-medium ${
-                selected?.start.getTime() === s.start.getTime()
-                  ? "border-neutral-900 bg-neutral-900 text-white"
-                  : "border-neutral-300 hover:bg-neutral-50"
-              }`}
-            >
-              {s.start.toLocaleString(undefined, {
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+          {slots.map((s) => {
+            const isSelected = selected?.start.getTime() === s.start.getTime();
+            return (
+              <motion.button
+                key={s.start.toISOString()}
+                type="button"
+                onClick={() => setSelected(s)}
+                whileTap={{ scale: 0.97 }}
+                aria-pressed={isSelected}
+                className={`flex items-center gap-2 rounded-md border px-3 py-2.5 text-left text-[13px] tabular-nums transition-colors ${
+                  isSelected
+                    ? "border-emerald bg-emerald-tint text-emerald"
+                    : "border-hairline text-ink hover:border-emerald-dim hover:bg-emerald-tint/40"
+                }`}
+              >
+                <span className={`h-[5px] w-[5px] shrink-0 rounded-full ${isSelected ? "bg-emerald" : "bg-emerald/70"}`} />
+                {s.start.toLocaleString(undefined, {
+                  weekday: "short",
+                  month: "short",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit",
+                })}
+              </motion.button>
+            );
+          })}
+        </div>
+      )}
+
+      {selected && (
+        <form onSubmit={handleSubmit} className="mt-7 flex max-w-sm flex-col gap-3 border-t border-hairline pt-7">
+          <p className="text-[13px] text-muted">
+            Requesting{" "}
+            <b className="font-semibold text-ink">
+              {selected.start.toLocaleString(undefined, {
                 weekday: "short",
                 month: "short",
                 day: "numeric",
                 hour: "numeric",
                 minute: "2-digit",
               })}
-            </motion.button>
-          ))}
-        </div>
-      )}
-
-      {selected && (
-        <form onSubmit={handleSubmit} className="mt-4 flex max-w-sm flex-col gap-2">
+            </b>
+          </p>
           {!isSignedIn && (
-            <p className="text-sm text-amber-700">
+            <p className="text-[13px] text-amber-400">
               You&apos;ll need to{" "}
               <a href="/login" className="underline">
                 sign in
@@ -95,32 +110,28 @@ export default function BookingAvailabilityPublicView({
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            className="rounded border border-neutral-300 px-2 py-1.5 text-sm"
+            className="rounded-md border border-hairline bg-elevated px-3 py-2 text-sm text-ink placeholder:text-muted/70 focus:border-emerald focus:outline-none"
           />
           <input
             placeholder="Phone or WhatsApp"
             value={contact}
             onChange={(e) => setContact(e.target.value)}
             required
-            className="rounded border border-neutral-300 px-2 py-1.5 text-sm"
+            className="rounded-md border border-hairline bg-elevated px-3 py-2 text-sm text-ink placeholder:text-muted/70 focus:border-emerald focus:outline-none"
           />
           <textarea
             placeholder="Note (optional)"
             value={note}
             onChange={(e) => setNote(e.target.value)}
             rows={2}
-            className="rounded border border-neutral-300 px-2 py-1.5 text-sm"
+            className="rounded-md border border-hairline bg-elevated px-3 py-2 text-sm text-ink placeholder:text-muted/70 focus:border-emerald focus:outline-none"
           />
-          {message && <p className="text-sm text-neutral-600">{message}</p>}
-          <button
-            type="submit"
-            disabled={submitting || !isSignedIn}
-            className="self-start rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-          >
+          {message && <p className="text-[13px] text-muted">{message}</p>}
+          <button type="submit" disabled={submitting || !isSignedIn} className={`${btnClass("solid", "md")} self-start`}>
             {submitting ? "Sending…" : "Request booking"}
           </button>
         </form>
       )}
-    </section>
+    </div>
   );
 }

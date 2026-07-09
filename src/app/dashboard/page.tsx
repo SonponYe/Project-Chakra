@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
 import { getCurrentUserRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { getModuleDefinition } from "@/lib/modules/registry";
 import { extractCustomFieldDefinitions } from "@/lib/modules/schemas";
+import Seal from "@/components/ui/Seal";
 import type { ModuleConfigEntry, ModuleKey } from "@/lib/supabase/database.types";
 import BookingsPanel, { type BookingRow } from "./BookingsPanel";
 
@@ -126,37 +128,38 @@ export default async function WorkerDashboardPage() {
   }));
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-10">
-      <div className="flex items-center justify-between">
+    <main className="mx-auto max-w-2xl px-6 py-12">
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold">{worker.display_name}</h1>
-          <p className="mt-1 text-sm text-neutral-500">
-            {serviceType.name} — {serviceType.status}
-          </p>
+          <div className="flex items-center gap-3">
+            <h1 className="font-display text-2xl font-medium">{worker.display_name}</h1>
+            <Seal status={serviceType.status} />
+          </div>
+          <p className="mt-1.5 text-[13.5px] text-muted">{serviceType.name}</p>
         </div>
         {serviceType.status === "standardized" && (
           <Link
             href={`/services/${serviceType.slug}/${worker.id}`}
-            className="text-xs font-medium text-neutral-500 underline"
+            className="flex shrink-0 items-center gap-1 text-[12.5px] font-medium text-muted transition-colors hover:text-emerald"
           >
-            View public profile
+            View public profile <ArrowUpRight size={13} />
           </Link>
         )}
       </div>
       {serviceType.status === "draft" && (
-        <p className="mt-2 rounded-md bg-amber-50 p-3 text-xs text-amber-800">
+        <p className="mt-4 rounded-md border border-dashed border-muted/30 p-3 text-[12.5px] text-muted">
           Saving any section below locks this service type&apos;s layout for every worker in it.
         </p>
       )}
 
-      <div className="mt-8 flex flex-col gap-8">
+      <div className="mt-10 flex flex-col gap-10">
         {moduleConfig.map((m) => {
           const def = getModuleDefinition(m.module_key);
           const data = dataByModule.get(m.module_key) ?? {};
 
           return (
             <section key={m.module_key}>
-              <h2 className="text-lg font-semibold">{def.label}</h2>
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-muted">{def.label}</p>
               <div className="mt-3">
                 {m.module_key === "gallery" && (
                   <GalleryAdminForm workerId={worker.id} initialData={data} />
@@ -185,9 +188,9 @@ export default async function WorkerDashboardPage() {
                         blockedDate: d.blocked_date,
                       }))}
                     />
-                    <div className="mt-6">
-                      <p className="text-sm font-medium text-neutral-700">Booking requests</p>
-                      <div className="mt-2">
+                    <div className="mt-8">
+                      <p className="text-[11px] font-semibold uppercase tracking-widest text-muted">Booking requests</p>
+                      <div className="mt-3">
                         <BookingsPanel bookings={bookingRows} />
                       </div>
                     </div>

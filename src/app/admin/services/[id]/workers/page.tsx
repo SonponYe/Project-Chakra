@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AddWorkerForm from "./AddWorkerForm";
+import type { ModuleConfigEntry } from "@/lib/supabase/database.types";
 
 export default async function ServiceTypeWorkersPage({
   params,
@@ -12,11 +13,20 @@ export default async function ServiceTypeWorkersPage({
 
   const { data: serviceType } = await supabase
     .from("service_types")
-    .select("id, name, status")
+    .select("id, name, status, current_version_id")
     .eq("id", id)
     .maybeSingle();
 
   if (!serviceType) notFound();
+
+  const { data: version } = serviceType.current_version_id
+    ? await supabase
+        .from("service_type_versions")
+        .select("module_config")
+        .eq("id", serviceType.current_version_id)
+        .maybeSingle()
+    : { data: null };
+  const totalModules = ((version?.module_config ?? []) as ModuleConfigEntry[]).length || 1;
 
   const { data: workers } = await supabase
     .from("workers")
@@ -24,33 +34,58 @@ export default async function ServiceTypeWorkersPage({
     .eq("service_type_id", id)
     .order("created_at", { ascending: false });
 
+  const workerIds = (workers ?? []).map((w) => w.id);
+  const { data: moduleDataRows } = workerIds.length
+    ? await supabase.from("worker_module_data").select("worker_id").in("worker_id", workerIds)
+    : { data: [] as { worker_id: string }[] };
+
+  const filledCountByWorker = new Map<string, number>();
+  for (const row of moduleDataRows ?? []) {
+    filledCountByWorker.set(row.worker_id, (filledCountByWorker.get(row.worker_id) ?? 0) + 1);
+  }
+
   return (
-    <main className="mx-auto max-w-2xl px-4 py-10">
-      <h1 className="text-2xl font-semibold">Workers — {serviceType.name}</h1>
-      <p className="mt-1 text-sm text-neutral-500">
+    <main className="mx-auto max-w-2xl px-6 py-12">
+      <p className="text-[11px] font-semibold uppercase tracking-widest text-muted">Admin</p>
+      <h1 className="mt-2 font-display text-2xl font-medium">Workers — {serviceType.name}</h1>
+      <p className="mt-1.5 text-[13.5px] text-muted">
         {serviceType.status === "draft"
           ? "Saving the first worker's profile data locks this service type's module layout."
-          : "This service type is standardized — every worker here shares the same profile shape."}
+          : "Standardized — every worker here shares the same profile shape."}
       </p>
 
-      <div className="mt-6">
+      <div className="mt-8">
         <AddWorkerForm serviceTypeId={serviceType.id} />
       </div>
 
-      <ul className="mt-8 divide-y divide-neutral-200 rounded-md border border-neutral-200 bg-white">
+      <div className="mt-8 flex flex-col gap-2.5">
         {workers?.length ? (
-          workers.map((w) => (
-            <li key={w.id} className="flex items-center justify-between px-4 py-3 text-sm">
-              <span>{w.display_name}</span>
-              <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs uppercase tracking-wide text-neutral-600">
-                {w.status}
-              </span>
-            </li>
-          ))
+          workers.map((w) => {
+            const filled = filledCountByWorker.get(w.id) ?? 0;
+            const pct = Math.min(100, Math.round((filled / totalModules) * 100));
+            return (
+              <div key={w.id} className="rounded-md border border-hairline bg-surface px-5 py-4">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-[14px] font-medium text-ink">{w.display_name}</p>
+                  <span className="shrink-0 text-[11px] uppercase tracking-wide text-muted">{w.status}</span>
+                </div>
+                <div className="mt-2.5 flex items-center gap-2.5">
+                  <div className="h-1 flex-1 overflow-hidden rounded-full bg-elevated">
+                    <div className="h-full rounded-full bg-emerald" style={{ width: `${pct}%` }} />
+                  </div>
+                  <span className="shrink-0 text-[11px] tabular-nums text-muted">
+                    {filled}/{totalModules} modules
+                  </span>
+                </div>
+              </div>
+            );
+          })
         ) : (
-          <li className="px-4 py-6 text-sm text-neutral-500">No workers yet.</li>
+          <p className="rounded-md border border-dashed border-muted/30 px-5 py-6 text-center text-[13px] text-muted">
+            No workers yet.
+          </p>
         )}
-      </ul>
+      </div>
     </main>
   );
 }

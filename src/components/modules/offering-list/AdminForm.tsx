@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Trash2, Plus } from "lucide-react";
 import { saveWorkerModuleDataAction } from "@/app/dashboard/actions";
 import { offeringListDataSchema, type OfferingListData } from "@/lib/modules/schemas";
+import { btnClass } from "@/components/ui/button";
+import { CARD, FIELD_SM } from "@/components/ui/card";
 
 type Offering = OfferingListData["offerings"][number];
 
@@ -44,36 +46,36 @@ export default function OfferingListAdminForm({
   return (
     <div className="flex flex-col gap-3">
       {offerings.map((o, i) => (
-        <div key={i} className="grid grid-cols-2 gap-2 rounded-md border border-neutral-200 bg-white p-3 sm:grid-cols-6">
+        <div key={i} className={`${CARD} grid grid-cols-2 gap-2 sm:grid-cols-6`}>
           <input
             placeholder="Name"
             value={o.name}
             onChange={(e) => update(i, { name: e.target.value })}
-            className="col-span-2 rounded border border-neutral-200 px-2 py-1 text-sm"
+            className={`col-span-2 ${FIELD_SM}`}
           />
           <input
             placeholder="Description"
             value={o.description ?? ""}
             onChange={(e) => update(i, { description: e.target.value })}
-            className="col-span-2 rounded border border-neutral-200 px-2 py-1 text-sm"
+            className={`col-span-2 ${FIELD_SM}`}
           />
           <input
             placeholder="Price"
             type="number"
             value={o.price ?? ""}
             onChange={(e) => update(i, { price: e.target.value ? Number(e.target.value) : undefined })}
-            className="rounded border border-neutral-200 px-2 py-1 text-sm"
+            className={FIELD_SM}
           />
           <input
             placeholder="Unit"
             value={o.unit ?? ""}
             onChange={(e) => update(i, { unit: e.target.value })}
-            className="rounded border border-neutral-200 px-2 py-1 text-sm"
+            className={FIELD_SM}
           />
           <select
             value={o.offeringType}
             onChange={(e) => update(i, { offeringType: e.target.value as Offering["offeringType"] })}
-            className="rounded border border-neutral-200 px-2 py-1 text-sm"
+            className={FIELD_SM}
           >
             <option value="service">Service</option>
             <option value="product">Product</option>
@@ -85,9 +87,13 @@ export default function OfferingListAdminForm({
             onChange={(e) =>
               update(i, { leadTimeDays: e.target.value ? Number(e.target.value) : undefined })
             }
-            className="rounded border border-neutral-200 px-2 py-1 text-sm"
+            className={FIELD_SM}
           />
-          <button type="button" onClick={() => remove(i)} className="flex items-center gap-1 text-xs text-red-600">
+          <button
+            type="button"
+            onClick={() => remove(i)}
+            className="flex items-center gap-1 text-xs text-red-400 transition-colors hover:text-red-300"
+          >
             <Trash2 size={12} /> Remove
           </button>
         </div>
@@ -96,19 +102,14 @@ export default function OfferingListAdminForm({
       <button
         type="button"
         onClick={() => setOfferings((prev) => [...prev, { ...BLANK }])}
-        className="flex items-center gap-1 self-start rounded-md border border-neutral-300 px-3 py-1.5 text-xs font-medium hover:bg-neutral-50"
+        className={btnClass("ghost", "sm") + " self-start"}
       >
         <Plus size={14} /> Add offering
       </button>
 
-      {message && <p className="text-sm text-neutral-600">{message}</p>}
+      {message && <p className="text-[13px] text-muted">{message}</p>}
 
-      <button
-        type="button"
-        onClick={handleSave}
-        disabled={saving}
-        className="self-start rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-      >
+      <button type="button" onClick={handleSave} disabled={saving} className={`${btnClass("solid", "md")} self-start`}>
         {saving ? "Saving…" : "Save offerings"}
       </button>
     </div>

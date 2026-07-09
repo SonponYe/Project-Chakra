@@ -3,6 +3,7 @@
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { btnClass } from "@/components/ui/button";
 
 // Prefer the deployed site URL when set so any email link (signup
 // confirmation) always points at production instead of wherever this
@@ -66,16 +67,17 @@ function LoginForm() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 px-4">
+    <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-8 px-6">
       <div>
-        <h1 className="text-2xl font-semibold">{mode === "signin" ? "Sign in" : "Create account"}</h1>
-        <p className="mt-1 text-sm text-neutral-500">
+        <p className="text-[11px] font-semibold uppercase tracking-widest text-muted">Capital Business</p>
+        <h1 className="mt-3 font-display text-3xl font-medium">{mode === "signin" ? "Sign in" : "Create account"}</h1>
+        <p className="mt-2 text-[14px] text-muted">
           {mode === "signin" ? "Use your email and password." : "Visitors only need this to book or review."}
         </p>
       </div>
 
       {status === "check-email" ? (
-        <p className="rounded-md bg-green-50 p-3 text-sm text-green-800">
+        <p className="rounded-md border border-emerald-dim bg-emerald-tint p-4 text-[14px] text-emerald">
           Check {email} to confirm your account, then come back and sign in.
         </p>
       ) : (
@@ -86,7 +88,7 @@ function LoginForm() {
             placeholder="you@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="rounded-md border border-hairline bg-elevated px-3.5 py-2.5 text-sm text-ink placeholder:text-muted/70 focus:border-emerald focus:outline-none"
           />
           <input
             type="password"
@@ -95,23 +97,19 @@ function LoginForm() {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="rounded-md border border-hairline bg-elevated px-3.5 py-2.5 text-sm text-ink placeholder:text-muted/70 focus:border-emerald focus:outline-none"
           />
-          <button
-            type="submit"
-            disabled={status === "submitting"}
-            className="rounded-md bg-neutral-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
-          >
+          <button type="submit" disabled={status === "submitting"} className={btnClass("solid", "md")}>
             {status === "submitting" ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
           </button>
-          {status === "error" && errorMessage && <p className="text-sm text-red-600">{errorMessage}</p>}
+          {status === "error" && errorMessage && <p className="text-[13px] text-red-400">{errorMessage}</p>}
         </form>
       )}
 
       <button
         type="button"
         onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-        className="text-sm text-neutral-500 underline"
+        className="text-[13px] text-muted underline decoration-muted/40 underline-offset-2 transition-colors hover:text-ink"
       >
         {mode === "signin" ? "New visitor? Create an account" : "Already have an account? Sign in"}
       </button>

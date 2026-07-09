@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { saveWorkerModuleDataAction } from "@/app/dashboard/actions";
 import { customFieldsDataSchema, type CustomFieldDefinition } from "@/lib/modules/schemas";
+import { btnClass } from "@/components/ui/button";
+import { FIELD_SM } from "@/components/ui/card";
 
 export default function CustomFieldsAdminForm({
   workerId,
@@ -31,40 +33,35 @@ export default function CustomFieldsAdminForm({
   }
 
   if (fieldDefinitions.length === 0) {
-    return <p className="text-sm text-neutral-500">No custom fields have been defined for this service type yet.</p>;
+    return <p className="text-[13px] text-muted">No custom fields have been defined for this service type yet.</p>;
   }
 
   return (
     <div className="flex flex-col gap-3">
       {fieldDefinitions.map((f) => (
         <div key={f.key}>
-          <label className="text-sm font-medium text-neutral-700">{f.label}</label>
+          <label className="text-[11px] font-semibold uppercase tracking-wide text-muted">{f.label}</label>
           {f.fieldType === "textarea" ? (
             <textarea
               value={values[f.key] ?? ""}
               onChange={(e) => setValues((prev) => ({ ...prev, [f.key]: e.target.value }))}
               rows={3}
-              className="mt-1 w-full rounded border border-neutral-200 px-2 py-1 text-sm"
+              className={`mt-1.5 w-full ${FIELD_SM}`}
             />
           ) : (
             <input
               type={f.fieldType === "number" ? "number" : f.fieldType === "url" ? "url" : "text"}
               value={values[f.key] ?? ""}
               onChange={(e) => setValues((prev) => ({ ...prev, [f.key]: e.target.value }))}
-              className="mt-1 w-full rounded border border-neutral-200 px-2 py-1 text-sm"
+              className={`mt-1.5 w-full ${FIELD_SM}`}
             />
           )}
         </div>
       ))}
 
-      {message && <p className="text-sm text-neutral-600">{message}</p>}
+      {message && <p className="text-[13px] text-muted">{message}</p>}
 
-      <button
-        type="button"
-        onClick={handleSave}
-        disabled={saving}
-        className="self-start rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-      >
+      <button type="button" onClick={handleSave} disabled={saving} className={`${btnClass("solid", "md")} self-start`}>
         {saving ? "Saving…" : "Save"}
       </button>
     </div>

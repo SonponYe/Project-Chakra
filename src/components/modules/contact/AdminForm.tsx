@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Trash2, Plus } from "lucide-react";
 import { saveWorkerModuleDataAction } from "@/app/dashboard/actions";
 import { contactDataSchema, type ContactData } from "@/lib/modules/schemas";
+import { btnClass } from "@/components/ui/button";
+import { FIELD_SM } from "@/components/ui/card";
 
 export default function ContactAdminForm({
   workerId,
@@ -42,29 +44,19 @@ export default function ContactAdminForm({
 
   return (
     <div className="flex flex-col gap-3">
-      <input
-        placeholder="Phone"
-        value={phone}
-        onChange={(e) => setPhone(e.target.value)}
-        className="rounded border border-neutral-200 px-2 py-1 text-sm"
-      />
+      <input placeholder="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} className={FIELD_SM} />
       <input
         placeholder="WhatsApp number"
         value={whatsapp}
         onChange={(e) => setWhatsapp(e.target.value)}
-        className="rounded border border-neutral-200 px-2 py-1 text-sm"
+        className={FIELD_SM}
       />
-      <input
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        className="rounded border border-neutral-200 px-2 py-1 text-sm"
-      />
+      <input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className={FIELD_SM} />
       <input
         placeholder="Location"
         value={location}
         onChange={(e) => setLocation(e.target.value)}
-        className="rounded border border-neutral-200 px-2 py-1 text-sm"
+        className={FIELD_SM}
       />
 
       {socials.map((s, i) => (
@@ -73,18 +65,18 @@ export default function ContactAdminForm({
             placeholder="Label (e.g. Instagram)"
             value={s.label}
             onChange={(e) => updateSocial(i, { label: e.target.value })}
-            className="w-1/3 rounded border border-neutral-200 px-2 py-1 text-sm"
+            className={`w-1/3 ${FIELD_SM}`}
           />
           <input
             placeholder="URL"
             value={s.url}
             onChange={(e) => updateSocial(i, { url: e.target.value })}
-            className="flex-1 rounded border border-neutral-200 px-2 py-1 text-sm"
+            className={`flex-1 ${FIELD_SM}`}
           />
           <button
             type="button"
             onClick={() => setSocials((prev) => prev.filter((_, idx) => idx !== i))}
-            className="text-red-600"
+            className="text-red-400 transition-colors hover:text-red-300"
           >
             <Trash2 size={14} />
           </button>
@@ -93,19 +85,14 @@ export default function ContactAdminForm({
       <button
         type="button"
         onClick={() => setSocials((prev) => [...prev, { label: "", url: "" }])}
-        className="flex items-center gap-1 self-start rounded-md border border-neutral-300 px-3 py-1.5 text-xs font-medium hover:bg-neutral-50"
+        className={`${btnClass("ghost", "sm")} self-start`}
       >
         <Plus size={14} /> Add social link
       </button>
 
-      {message && <p className="text-sm text-neutral-600">{message}</p>}
+      {message && <p className="text-[13px] text-muted">{message}</p>}
 
-      <button
-        type="button"
-        onClick={handleSave}
-        disabled={saving}
-        className="self-start rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-      >
+      <button type="button" onClick={handleSave} disabled={saving} className={`${btnClass("solid", "md")} self-start`}>
         {saving ? "Saving…" : "Save contact"}
       </button>
     </div>

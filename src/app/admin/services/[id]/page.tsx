@@ -6,6 +6,8 @@ import EditDraftModules from "./EditDraftModules";
 import ProposeNewVersion from "./ProposeNewVersion";
 import { extractCustomFieldDefinitions } from "@/lib/modules/schemas";
 import type { ModuleConfigEntry } from "@/lib/supabase/database.types";
+import Seal from "@/components/ui/Seal";
+import { btnClass } from "@/components/ui/button";
 
 export default async function ServiceTypeDetailPage({
   params,
@@ -35,26 +37,22 @@ export default async function ServiceTypeDetailPage({
   const customFieldDefinitions = extractCustomFieldDefinitions(moduleConfig);
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-10">
-      <div className="flex items-center justify-between">
+    <main className="mx-auto max-w-2xl px-6 py-12">
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold">{serviceType.name}</h1>
-          <p className="mt-1 text-sm text-neutral-500">/{serviceType.slug}</p>
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-muted">Admin</p>
+          <h1 className="mt-2 font-display text-2xl font-medium">{serviceType.name}</h1>
+          <p className="mt-1 text-[13px] text-muted">/{serviceType.slug}</p>
         </div>
-        <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium uppercase tracking-wide text-neutral-600">
-          {serviceType.status}
-        </span>
+        <Seal status={serviceType.status} />
       </div>
 
-      <Link
-        href={`/admin/services/${serviceType.id}/workers`}
-        className="mt-4 inline-block rounded-md border border-neutral-300 px-3 py-1.5 text-xs font-medium hover:bg-neutral-50"
-      >
+      <Link href={`/admin/services/${serviceType.id}/workers`} className={`${btnClass("ghost", "sm")} mt-5`}>
         Manage workers
       </Link>
 
       {serviceType.status === "draft" ? (
-        <div className="mt-8">
+        <div className="mt-9">
           <EditDraftModules
             serviceTypeId={serviceType.id}
             initialModuleKeys={moduleConfig.map((m) => m.module_key)}
@@ -62,27 +60,27 @@ export default async function ServiceTypeDetailPage({
           />
         </div>
       ) : (
-        <div className="mt-8">
-          <p className="text-sm font-medium text-neutral-700">Locked module layout</p>
-          <p className="mt-1 text-xs text-neutral-500">
-            This service type is standardized — every worker in it shares this exact profile shape.
+        <div className="mt-9">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">Locked module layout</p>
+          <p className="mt-1.5 text-[13px] text-muted">
+            Every worker in this category shares this exact profile shape.
           </p>
-          <ul className="mt-3 flex flex-col gap-2">
+          <ul className="mt-4 flex flex-col gap-2">
             {moduleConfig.map((m) => {
               const def = getModuleDefinition(m.module_key);
               return (
                 <li
                   key={m.module_key}
-                  className="rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm"
+                  className="rounded-md border border-dashed border-muted/25 px-3.5 py-2.5 text-[13.5px] opacity-80"
                 >
-                  <p className="font-medium">{def.label}</p>
-                  <p className="text-xs text-neutral-500">{def.description}</p>
+                  <p className="font-medium text-ink">{def.label}</p>
+                  <p className="text-[12px] text-muted">{def.description}</p>
                 </li>
               );
             })}
           </ul>
 
-          <div className="mt-4">
+          <div className="mt-5">
             <ProposeNewVersion
               serviceTypeId={serviceType.id}
               currentModuleKeys={moduleConfig.map((m) => m.module_key)}

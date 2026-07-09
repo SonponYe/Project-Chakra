@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { respondToBookingAction } from "./actions";
+import { btnClass } from "@/components/ui/button";
+import { CARD } from "@/components/ui/card";
 import type { BookingStatus } from "@/lib/supabase/database.types";
 
 export interface BookingRow {
@@ -12,6 +14,13 @@ export interface BookingRow {
   requestedSlot: string;
   status: BookingStatus;
 }
+
+const STATUS_LABEL: Record<BookingStatus, string> = {
+  pending: "Pending",
+  accepted: "Accepted",
+  declined: "Declined",
+  completed: "Completed",
+};
 
 export default function BookingsPanel({ bookings }: { bookings: BookingRow[] }) {
   const [rows, setRows] = useState(bookings);
@@ -35,31 +44,39 @@ export default function BookingsPanel({ bookings }: { bookings: BookingRow[] }) 
   }
 
   if (rows.length === 0) {
-    return <p className="text-sm text-neutral-500">No booking requests yet.</p>;
+    return <p className="text-[13px] text-muted">No bookings yet — your public profile link is above.</p>;
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      {message && <p className="text-sm text-red-600">{message}</p>}
+    <div className="flex flex-col gap-2.5">
+      {message && <p className="text-[13px] text-red-400">{message}</p>}
       {rows.map((b) => (
-        <div key={b.id} className="rounded-md border border-neutral-200 bg-white p-3 text-sm">
-          <div className="flex items-center justify-between">
-            <p className="font-medium">{b.requesterName}</p>
-            <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs uppercase tracking-wide text-neutral-600">
-              {b.status}
+        <div key={b.id} className={CARD}>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-[14px] font-semibold text-ink">{b.requesterName}</p>
+            <span
+              className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                b.status === "accepted"
+                  ? "bg-emerald-tint text-emerald"
+                  : b.status === "pending"
+                    ? "border border-dashed border-muted/40 text-muted"
+                    : "text-muted"
+              }`}
+            >
+              {STATUS_LABEL[b.status]}
             </span>
           </div>
-          <p className="text-neutral-500">{new Date(b.requestedSlot).toLocaleString()}</p>
-          <p className="text-neutral-500">{b.requesterContact}</p>
-          {b.note && <p className="mt-1 text-neutral-600">{b.note}</p>}
+          <p className="mt-1 text-[13px] tabular-nums text-muted">{new Date(b.requestedSlot).toLocaleString()}</p>
+          <p className="text-[13px] text-muted">{b.requesterContact}</p>
+          {b.note && <p className="mt-1.5 text-[13px] text-ink/80">{b.note}</p>}
 
           {b.status === "pending" && (
-            <div className="mt-2 flex gap-2">
+            <div className="mt-3 flex gap-2">
               <button
                 type="button"
                 onClick={() => respond(b, "accepted")}
                 disabled={busyId === b.id}
-                className="rounded-md bg-neutral-900 px-3 py-1 text-xs font-medium text-white disabled:opacity-50"
+                className={btnClass("solid", "sm")}
               >
                 Accept
               </button>
@@ -67,7 +84,7 @@ export default function BookingsPanel({ bookings }: { bookings: BookingRow[] }) 
                 type="button"
                 onClick={() => respond(b, "declined")}
                 disabled={busyId === b.id}
-                className="rounded-md border border-neutral-300 px-3 py-1 text-xs font-medium disabled:opacity-50"
+                className={btnClass("ghost", "sm")}
               >
                 Decline
               </button>
@@ -78,7 +95,7 @@ export default function BookingsPanel({ bookings }: { bookings: BookingRow[] }) 
               type="button"
               onClick={() => respond(b, "completed")}
               disabled={busyId === b.id}
-              className="mt-2 rounded-md border border-neutral-300 px-3 py-1 text-xs font-medium disabled:opacity-50"
+              className={`${btnClass("ghost", "sm")} mt-3`}
             >
               Mark completed
             </button>

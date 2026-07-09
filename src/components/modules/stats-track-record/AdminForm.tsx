@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Trash2, Plus } from "lucide-react";
 import { saveWorkerModuleDataAction } from "@/app/dashboard/actions";
 import { statsTrackRecordDataSchema, type StatsTrackRecordData } from "@/lib/modules/schemas";
+import { btnClass } from "@/components/ui/button";
+import { CARD, FIELD, FIELD_SM } from "@/components/ui/card";
 
 type Stat = StatsTrackRecordData["stats"][number];
 
@@ -44,27 +46,27 @@ export default function StatsTrackRecordAdminForm({
   return (
     <div className="flex flex-col gap-3">
       {stats.map((s, i) => (
-        <div key={i} className="grid grid-cols-3 gap-2 rounded-md border border-neutral-200 bg-white p-3">
+        <div key={i} className={`${CARD} grid grid-cols-3 gap-2`}>
           <input
             placeholder="Label"
             value={s.label}
             onChange={(e) => update(i, { label: e.target.value })}
-            className="rounded border border-neutral-200 px-2 py-1 text-sm"
+            className={FIELD_SM}
           />
           <input
             placeholder="Value"
             value={s.value}
             onChange={(e) => update(i, { value: e.target.value })}
-            className="rounded border border-neutral-200 px-2 py-1 text-sm"
+            className={FIELD_SM}
           />
           <div className="flex items-center gap-2">
             <input
               placeholder="As of (optional)"
               value={s.asOfDate ?? ""}
               onChange={(e) => update(i, { asOfDate: e.target.value })}
-              className="w-full rounded border border-neutral-200 px-2 py-1 text-sm"
+              className={`w-full ${FIELD_SM}`}
             />
-            <button type="button" onClick={() => remove(i)} className="text-red-600">
+            <button type="button" onClick={() => remove(i)} className="text-red-400 transition-colors hover:text-red-300">
               <Trash2 size={14} />
             </button>
           </div>
@@ -74,7 +76,7 @@ export default function StatsTrackRecordAdminForm({
       <button
         type="button"
         onClick={() => setStats((prev) => [...prev, { label: "", value: "" }])}
-        className="flex items-center gap-1 self-start rounded-md border border-neutral-300 px-3 py-1.5 text-xs font-medium hover:bg-neutral-50"
+        className={`${btnClass("ghost", "sm")} self-start`}
       >
         <Plus size={14} /> Add stat
       </button>
@@ -84,22 +86,17 @@ export default function StatsTrackRecordAdminForm({
         value={summary}
         onChange={(e) => setSummary(e.target.value)}
         rows={4}
-        className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+        className={FIELD}
       />
 
-      <label className="flex items-center gap-2 text-sm text-neutral-700">
+      <label className="flex items-center gap-2 text-[13px] text-muted">
         <input type="checkbox" checked={disclaimer} onChange={(e) => setDisclaimer(e.target.checked)} />
         Show &quot;not verified investment advice&quot; disclaimer
       </label>
 
-      {message && <p className="text-sm text-neutral-600">{message}</p>}
+      {message && <p className="text-[13px] text-muted">{message}</p>}
 
-      <button
-        type="button"
-        onClick={handleSave}
-        disabled={saving}
-        className="self-start rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-      >
+      <button type="button" onClick={handleSave} disabled={saving} className={`${btnClass("solid", "md")} self-start`}>
         {saving ? "Saving…" : "Save stats"}
       </button>
     </div>

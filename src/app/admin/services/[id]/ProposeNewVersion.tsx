@@ -6,6 +6,7 @@ import ModuleChecklist from "../ModuleChecklist";
 import { createServiceTypeVersionAction } from "../actions";
 import type { ModuleKey } from "@/lib/supabase/database.types";
 import type { CustomFieldDefinition } from "@/lib/modules/schemas";
+import { btnClass } from "@/components/ui/button";
 
 export default function ProposeNewVersion({
   serviceTypeId,
@@ -45,19 +46,15 @@ export default function ProposeNewVersion({
 
   if (!editing) {
     return (
-      <button
-        type="button"
-        onClick={() => setEditing(true)}
-        className="rounded-md border border-neutral-300 px-3 py-1.5 text-xs font-medium hover:bg-neutral-50"
-      >
+      <button type="button" onClick={() => setEditing(true)} className={btnClass("ghost", "sm")}>
         Propose a new version
       </button>
     );
   }
 
   return (
-    <div className="mt-4 flex flex-col gap-4 rounded-md border border-neutral-200 bg-neutral-50 p-4">
-      <p className="text-xs text-neutral-500">
+    <div className="flex flex-col gap-4 rounded-md border border-hairline bg-surface p-5">
+      <p className="text-[12.5px] text-muted">
         Existing workers keep whatever data they already saved. New/removed modules only affect
         new saves going forward.
       </p>
@@ -67,21 +64,12 @@ export default function ProposeNewVersion({
         customFieldDefinitions={customFieldDefinitions}
         onCustomFieldDefinitionsChange={setCustomFieldDefinitions}
       />
-      {message && <p className="text-sm text-neutral-600">{message}</p>}
+      {message && <p className="text-[13px] text-muted">{message}</p>}
       <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={saving}
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-        >
+        <button type="button" onClick={handleSave} disabled={saving} className={btnClass("solid", "md")}>
           {saving ? "Saving…" : "Publish new version"}
         </button>
-        <button
-          type="button"
-          onClick={() => setEditing(false)}
-          className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-100"
-        >
+        <button type="button" onClick={() => setEditing(false)} className={btnClass("ghost", "md")}>
           Cancel
         </button>
       </div>

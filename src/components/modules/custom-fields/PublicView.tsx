@@ -15,16 +15,13 @@ export default function CustomFieldsPublicView({
   if (entries.length === 0) return null;
 
   return (
-    <section>
-      <h2 className="text-lg font-semibold">Details</h2>
-      <dl className="mt-3 flex flex-col gap-2 text-sm">
-        {entries.map((e) => (
-          <div key={e.label} className="flex gap-2">
-            <dt className="font-medium text-neutral-700">{e.label}:</dt>
-            <dd className="text-neutral-600">{e.value}</dd>
-          </div>
-        ))}
-      </dl>
-    </section>
+    <dl className="flex flex-col gap-2.5 text-[14px]">
+      {entries.map((e) => (
+        <div key={e.label} className="flex gap-2">
+          <dt className="font-medium text-ink">{e.label}:</dt>
+          <dd className="text-muted">{e.value}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }

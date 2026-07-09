@@ -8,32 +8,29 @@ export default function CaseStudiesPublicView({ data }: { data: unknown }) {
   if (!parsed.success || parsed.data.items.length === 0) return null;
 
   return (
-    <section>
-      <h2 className="text-lg font-semibold">Case studies</h2>
-      <div className="mt-3 flex flex-col gap-4">
-        {parsed.data.items.map((it, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, y: 8 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: i * 0.03 }}
-            className="rounded-md border border-neutral-200 bg-white p-4"
-          >
-            <p className="font-medium">{it.title}</p>
-            {it.description && <p className="mt-1 text-sm text-neutral-600">{it.description}</p>}
-            {it.outcome && <p className="mt-1 text-sm font-medium text-neutral-800">Outcome: {it.outcome}</p>}
-            {it.images.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-2">
-                {it.images.map((url) => (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img key={url} src={url} alt={it.title} className="h-20 w-20 rounded object-cover" />
-                ))}
-              </div>
-            )}
-          </motion.div>
-        ))}
-      </div>
-    </section>
+    <div className="flex flex-col gap-4">
+      {parsed.data.items.map((it, i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity: 0, y: 8 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: i * 0.03, duration: 0.4 }}
+          className="rounded-md border border-hairline bg-elevated p-5"
+        >
+          <p className="font-display text-base font-medium">{it.title}</p>
+          {it.description && <p className="mt-1.5 text-[13.5px] leading-relaxed text-muted">{it.description}</p>}
+          {it.outcome && <p className="mt-2 text-[13.5px] font-medium text-emerald">{it.outcome}</p>}
+          {it.images.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {it.images.map((url) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img key={url} src={url} alt={it.title} className="h-20 w-20 rounded object-cover" />
+              ))}
+            </div>
+          )}
+        </motion.div>
+      ))}
+    </div>
   );
 }

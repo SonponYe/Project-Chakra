@@ -1,19 +1,44 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --void: #0b0c10;
+  --surface: #15161c;
+  --elevated: #1d1f27;
+  --muted: #8b8d98;
+  --ink: #e9eaee;
+  --emerald: #17b978;
+  --emerald-bright: #1ecb87;
+  --emerald-dim: #0e4430;
+  --emerald-tint: rgba(23, 185, 120, 0.12);
+  --hairline: rgba(233, 234, 238, 0.08);
+  --hairline-emerald: rgba(23, 185, 120, 0.18);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-void: var(--void);
+  --color-surface: var(--surface);
+  --color-elevated: var(--elevated);
+  --color-muted: var(--muted);
+  --color-ink: var(--ink);
+  --color-emerald: var(--emerald);
+  --color-emerald-bright: var(--emerald-bright);
+  --color-emerald-dim: var(--emerald-dim);
+  --color-emerald-tint: var(--emerald-tint);
+  --color-hairline: var(--hairline);
+  --color-hairline-emerald: var(--hairline-emerald);
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), -apple-system, "Segoe UI", sans-serif;
+}
+
+h1, h2, h3, .font-display {
+  font-family: var(--font-display), Georgia, serif;
+}
+
+::selection {
+  background: var(--emerald-dim);
+  color: var(--ink);
 }

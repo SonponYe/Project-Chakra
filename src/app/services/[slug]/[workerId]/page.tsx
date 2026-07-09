@@ -1,8 +1,12 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { extractCustomFieldDefinitions } from "@/lib/modules/schemas";
 import { computeAvailableSlots } from "@/lib/booking/slots";
-import type { ModuleConfigEntry } from "@/lib/supabase/database.types";
+import { getModuleDefinition } from "@/lib/modules/registry";
+import type { ModuleConfigEntry, ModuleKey } from "@/lib/supabase/database.types";
+import Seal from "@/components/ui/Seal";
+import Band, { Eyebrow } from "@/components/ui/Band";
 
 import GalleryPublicView from "@/components/modules/gallery/PublicView";
 import OfferingListPublicView from "@/components/modules/offering-list/PublicView";
@@ -14,6 +18,8 @@ import ContactPublicView from "@/components/modules/contact/PublicView";
 import CustomFieldsPublicView from "@/components/modules/custom-fields/PublicView";
 
 export const revalidate = 30;
+
+const MODULES_WITH_OWN_HEADING: ModuleKey[] = ["contact"];
 
 export default async function WorkerProfilePage({
   params,
@@ -34,7 +40,7 @@ export default async function WorkerProfilePage({
 
   const { data: worker } = await supabase
     .from("workers")
-    .select("id, display_name, bio, status, service_type_id")
+    .select("id, display_name, bio, status, service_type_id, created_at")
     .eq("id", workerId)
     .eq("status", "active")
     .maybeSingle();
@@ -66,36 +72,40 @@ export default async function WorkerProfilePage({
   const hasBooking = moduleKeys.includes("booking_availability");
   const hasReviews = moduleKeys.includes("reviews");
 
-  const [availabilityResult, blockedDatesResult, acceptedBookingsResult, reviewsResult] = await Promise.all([
-    hasBooking
-      ? supabase.from("worker_availability").select("day_of_week, start_time, end_time").eq("worker_id", worker.id)
-      : Promise.resolve({ data: [] as { day_of_week: number; start_time: string; end_time: string }[] }),
-    hasBooking
-      ? supabase.from("worker_blocked_dates").select("blocked_date").eq("worker_id", worker.id)
-      : Promise.resolve({ data: [] as { blocked_date: string }[] }),
-    hasBooking
-      ? supabase
-          .from("bookings")
-          .select("requested_slot")
-          .eq("worker_id", worker.id)
-          .eq("status", "accepted")
-      : Promise.resolve({ data: [] as { requested_slot: string }[] }),
-    hasReviews
-      ? supabase
-          .from("reviews")
-          .select("id, rating, text, worker_response, created_at")
-          .eq("worker_id", worker.id)
-          .order("created_at", { ascending: false })
-      : Promise.resolve({
-          data: [] as {
-            id: string;
-            rating: number;
-            text: string | null;
-            worker_response: string | null;
-            created_at: string;
-          }[],
-        }),
-  ]);
+  const [availabilityResult, blockedDatesResult, acceptedBookingsResult, completedCountResult, reviewsResult] =
+    await Promise.all([
+      hasBooking
+        ? supabase.from("worker_availability").select("day_of_week, start_time, end_time").eq("worker_id", worker.id)
+        : Promise.resolve({ data: [] as { day_of_week: number; start_time: string; end_time: string }[] }),
+      hasBooking
+        ? supabase.from("worker_blocked_dates").select("blocked_date").eq("worker_id", worker.id)
+        : Promise.resolve({ data: [] as { blocked_date: string }[] }),
+      hasBooking
+        ? supabase.from("bookings").select("requested_slot").eq("worker_id", worker.id).eq("status", "accepted")
+        : Promise.resolve({ data: [] as { requested_slot: string }[] }),
+      hasBooking
+        ? supabase
+            .from("bookings")
+            .select("id", { count: "exact", head: true })
+            .eq("worker_id", worker.id)
+            .eq("status", "completed")
+        : Promise.resolve({ count: 0 }),
+      hasReviews
+        ? supabase
+            .from("reviews")
+            .select("id, rating, text, worker_response, created_at")
+            .eq("worker_id", worker.id)
+            .order("created_at", { ascending: false })
+        : Promise.resolve({
+            data: [] as {
+              id: string;
+              rating: number;
+              text: string | null;
+              worker_response: string | null;
+              created_at: string;
+            }[],
+          }),
+    ]);
 
   const slots = hasBooking
     ? computeAvailableSlots({
@@ -120,28 +130,68 @@ export default async function WorkerProfilePage({
     createdAt: r.created_at,
   }));
 
+  const avgRating = reviewRows.length
+    ? reviewRows.reduce((s, r) => s + r.rating, 0) / reviewRows.length
+    : null;
+
+  const joinedYears = Math.max(1, Math.round((Date.now() - new Date(worker.created_at).getTime()) / (365 * 86400000)));
+
   return (
-    <main className="mx-auto max-w-2xl px-4 py-16">
-      <h1 className="text-2xl font-semibold">{worker.display_name}</h1>
-      {worker.bio && <p className="mt-2 text-neutral-600">{worker.bio}</p>}
+    <main className="flex-1">
+      <div className="border-b border-hairline px-6 pb-4 pt-6">
+        <div className="mx-auto max-w-2xl">
+          <Link href={`/services/${serviceType.slug}`} className="text-[13px] text-muted transition-colors hover:text-ink">
+            ← {serviceType.name}
+          </Link>
+        </div>
+      </div>
 
-      <div className="mt-8 flex flex-col gap-10">
-        {moduleConfig.map((m) => {
-          const data = dataByModule.get(m.module_key) ?? {};
+      <Band tone="void">
+        <div className="flex flex-wrap items-baseline gap-3">
+          <h1 className="font-display text-4xl font-medium sm:text-[44px]">{worker.display_name}</h1>
+          <Seal status={serviceType.status} />
+        </div>
 
+        <div className="mt-10 flex flex-wrap gap-10">
+          {hasBooking && (
+            <div>
+              <p className="font-display text-[26px] tabular-nums">{completedCountResult.count ?? 0}</p>
+              <p className="mt-1 text-[12px] uppercase tracking-wide text-muted">Bookings completed</p>
+            </div>
+          )}
+          {avgRating !== null && (
+            <div>
+              <p className="font-display text-[26px] tabular-nums">{avgRating.toFixed(1)}</p>
+              <p className="mt-1 text-[12px] uppercase tracking-wide text-muted">Average rating</p>
+            </div>
+          )}
+          <div>
+            <p className="font-display text-[26px] tabular-nums">{joinedYears} yr{joinedYears === 1 ? "" : "s"}</p>
+            <p className="mt-1 text-[12px] uppercase tracking-wide text-muted">On the platform</p>
+          </div>
+        </div>
+
+        {worker.bio && <p className="mt-8 max-w-[58ch] text-[15px] leading-relaxed text-ink/90">{worker.bio}</p>}
+      </Band>
+
+      {moduleConfig.map((m, index) => {
+        const data = dataByModule.get(m.module_key) ?? {};
+        const def = getModuleDefinition(m.module_key);
+        const tone = index % 2 === 0 ? "surface" : "void";
+
+        const content = (() => {
           switch (m.module_key) {
             case "gallery":
-              return <GalleryPublicView key={m.module_key} data={data} />;
+              return <GalleryPublicView data={data} />;
             case "offering_list":
-              return <OfferingListPublicView key={m.module_key} data={data} />;
+              return <OfferingListPublicView data={data} />;
             case "stats_track_record":
-              return <StatsTrackRecordPublicView key={m.module_key} data={data} />;
+              return <StatsTrackRecordPublicView data={data} />;
             case "case_studies":
-              return <CaseStudiesPublicView key={m.module_key} data={data} />;
+              return <CaseStudiesPublicView data={data} />;
             case "booking_availability":
               return (
                 <BookingAvailabilityPublicView
-                  key={m.module_key}
                   data={data}
                   workerId={worker.id}
                   slots={slots}
@@ -151,7 +201,6 @@ export default async function WorkerProfilePage({
             case "reviews":
               return (
                 <ReviewsPublicView
-                  key={m.module_key}
                   data={data}
                   workerId={worker.id}
                   reviews={reviewRows}
@@ -159,20 +208,29 @@ export default async function WorkerProfilePage({
                 />
               );
             case "contact":
-              return <ContactPublicView key={m.module_key} data={data} />;
+              return <ContactPublicView data={data} />;
             case "custom_fields":
-              return (
-                <CustomFieldsPublicView
-                  key={m.module_key}
-                  data={data}
-                  fieldDefinitions={customFieldDefinitions}
-                />
-              );
+              return <CustomFieldsPublicView data={data} fieldDefinitions={customFieldDefinitions} />;
             default:
               return null;
           }
-        })}
-      </div>
+        })();
+
+        if (!content) return null;
+
+        return (
+          <Band key={m.module_key} tone={tone} id={m.module_key === "contact" ? "contact" : undefined}>
+            {!MODULES_WITH_OWN_HEADING.includes(m.module_key) && (
+              <div className="mb-8">
+                <Eyebrow>{def.label}</Eyebrow>
+              </div>
+            )}
+            {content}
+          </Band>
+        );
+      })}
+
+      <footer className="px-6 py-10 text-center text-[12px] text-muted">Capital Business</footer>
     </main>
   );
 }

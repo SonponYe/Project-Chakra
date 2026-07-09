@@ -8,5 +8,5 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect("/login?next=/admin/services");
   }
 
-  return <div className="min-h-screen bg-neutral-50">{children}</div>;
+  return <div className="min-h-screen bg-void">{children}</div>;
 }

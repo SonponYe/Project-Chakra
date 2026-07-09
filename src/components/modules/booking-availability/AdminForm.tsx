@@ -9,6 +9,8 @@ import {
   removeBlockedDateAction,
 } from "@/app/dashboard/actions";
 import { bookingAvailabilityDataSchema } from "@/lib/modules/schemas";
+import { btnClass } from "@/components/ui/button";
+import { FIELD, FIELD_SM } from "@/components/ui/card";
 
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -79,26 +81,27 @@ export default function BookingAvailabilityAdminForm({
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-6">
       <div>
-        <label className="text-sm font-medium text-neutral-700">Slot duration (minutes)</label>
+        <label className="text-[11px] font-semibold uppercase tracking-wide text-muted">Slot duration (minutes)</label>
         <input
           type="number"
           value={slotDuration}
           onChange={(e) => setSlotDuration(Number(e.target.value))}
-          className="mt-1 w-32 rounded border border-neutral-200 px-2 py-1 text-sm"
+          className={`mt-1.5 w-32 ${FIELD_SM}`}
         />
       </div>
 
       <div>
-        <p className="text-sm font-medium text-neutral-700">Weekly availability</p>
-        <div className="mt-2 flex flex-col gap-2">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">Weekly availability</p>
+        <div className="mt-2.5 flex flex-col gap-2">
           {blocks.map((b, i) => (
             <div key={i} className="flex items-center gap-2">
+              <span className="h-[5px] w-[5px] shrink-0 rounded-full bg-emerald" />
               <select
                 value={b.dayOfWeek}
                 onChange={(e) => updateBlock(i, { dayOfWeek: Number(e.target.value) })}
-                className="rounded border border-neutral-200 px-2 py-1 text-sm"
+                className={FIELD_SM}
               >
                 {DAY_LABELS.map((d, idx) => (
                   <option key={idx} value={idx}>
@@ -110,19 +113,19 @@ export default function BookingAvailabilityAdminForm({
                 type="time"
                 value={b.startTime.slice(0, 5)}
                 onChange={(e) => updateBlock(i, { startTime: e.target.value })}
-                className="rounded border border-neutral-200 px-2 py-1 text-sm"
+                className={FIELD_SM}
               />
-              <span className="text-neutral-400">to</span>
+              <span className="text-muted">to</span>
               <input
                 type="time"
                 value={b.endTime.slice(0, 5)}
                 onChange={(e) => updateBlock(i, { endTime: e.target.value })}
-                className="rounded border border-neutral-200 px-2 py-1 text-sm"
+                className={FIELD_SM}
               />
               <button
                 type="button"
                 onClick={() => setBlocks((prev) => prev.filter((_, idx) => idx !== i))}
-                className="text-red-600"
+                className="text-red-400 transition-colors hover:text-red-300"
               >
                 <Trash2 size={14} />
               </button>
@@ -131,7 +134,7 @@ export default function BookingAvailabilityAdminForm({
           <button
             type="button"
             onClick={() => setBlocks((prev) => [...prev, { dayOfWeek: 1, startTime: "09:00", endTime: "17:00" }])}
-            className="flex items-center gap-1 self-start rounded-md border border-neutral-300 px-3 py-1.5 text-xs font-medium hover:bg-neutral-50"
+            className={`${btnClass("ghost", "sm")} self-start`}
           >
             <Plus size={14} /> Add weekly block
           </button>
@@ -139,32 +142,28 @@ export default function BookingAvailabilityAdminForm({
       </div>
 
       <div>
-        <p className="text-sm font-medium text-neutral-700">Blocked dates</p>
-        <div className="mt-2 flex flex-wrap gap-2">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">Blocked dates</p>
+        <div className="mt-2.5 flex flex-wrap gap-2">
           {blockedDates.map((d) => (
             <span
               key={d.id}
-              className="flex items-center gap-1 rounded-full bg-neutral-100 px-3 py-1 text-xs"
+              className="flex items-center gap-1.5 rounded-full border border-hairline bg-elevated px-3 py-1 text-xs text-ink"
             >
               {d.blockedDate}
-              <button type="button" onClick={() => handleRemoveBlockedDate(d.id)}>
+              <button type="button" onClick={() => handleRemoveBlockedDate(d.id)} className="text-muted hover:text-red-400">
                 <Trash2 size={12} />
               </button>
             </span>
           ))}
         </div>
-        <div className="mt-2 flex gap-2">
+        <div className="mt-2.5 flex gap-2">
           <input
             type="date"
             value={newBlockedDate}
             onChange={(e) => setNewBlockedDate(e.target.value)}
-            className="rounded border border-neutral-200 px-2 py-1 text-sm"
+            className={FIELD_SM}
           />
-          <button
-            type="button"
-            onClick={handleAddBlockedDate}
-            className="rounded-md border border-neutral-300 px-3 py-1.5 text-xs font-medium hover:bg-neutral-50"
-          >
+          <button type="button" onClick={handleAddBlockedDate} className={btnClass("ghost", "sm")}>
             Block date
           </button>
         </div>
@@ -175,17 +174,12 @@ export default function BookingAvailabilityAdminForm({
         value={note}
         onChange={(e) => setNote(e.target.value)}
         rows={2}
-        className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+        className={FIELD}
       />
 
-      {message && <p className="text-sm text-neutral-600">{message}</p>}
+      {message && <p className="text-[13px] text-muted">{message}</p>}
 
-      <button
-        type="button"
-        onClick={handleSaveAll}
-        disabled={saving}
-        className="self-start rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-      >
+      <button type="button" onClick={handleSaveAll} disabled={saving} className={`${btnClass("solid", "md")} self-start`}>
         {saving ? "Saving…" : "Save availability"}
       </button>
     </div>
