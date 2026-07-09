@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentUserRole } from "@/lib/auth";
 import AddWorkerForm from "./AddWorkerForm";
+import WorkersList from "./WorkersList";
 import type { ModuleConfigEntry } from "@/lib/supabase/database.types";
 
 export default async function ServiceTypeWorkersPage({
@@ -10,6 +12,8 @@ export default async function ServiceTypeWorkersPage({
 }) {
   const { id } = await params;
   const supabase = await createClient();
+  const role = await getCurrentUserRole();
+  const isSuperAdmin = role.kind === "admin" && role.role === "super_admin";
 
   const { data: serviceType } = await supabase
     .from("service_types")
@@ -58,33 +62,17 @@ export default async function ServiceTypeWorkersPage({
         <AddWorkerForm serviceTypeId={serviceType.id} />
       </div>
 
-      <div className="mt-8 flex flex-col gap-2.5">
-        {workers?.length ? (
-          workers.map((w) => {
-            const filled = filledCountByWorker.get(w.id) ?? 0;
-            const pct = Math.min(100, Math.round((filled / totalModules) * 100));
-            return (
-              <div key={w.id} className="rounded-md border border-hairline bg-surface px-5 py-4">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-[14px] font-medium text-ink">{w.display_name}</p>
-                  <span className="shrink-0 text-[11px] uppercase tracking-wide text-muted">{w.status}</span>
-                </div>
-                <div className="mt-2.5 flex items-center gap-2.5">
-                  <div className="h-1 flex-1 overflow-hidden rounded-full bg-elevated">
-                    <div className="h-full rounded-full bg-emerald" style={{ width: `${pct}%` }} />
-                  </div>
-                  <span className="shrink-0 text-[11px] tabular-nums text-muted">
-                    {filled}/{totalModules} modules
-                  </span>
-                </div>
-              </div>
-            );
-          })
-        ) : (
-          <p className="rounded-md border border-dashed border-muted/30 px-5 py-6 text-center text-[13px] text-muted">
-            No workers yet.
-          </p>
-        )}
+      <div className="mt-8">
+        <WorkersList
+          workers={(workers ?? []).map((w) => ({
+            id: w.id,
+            displayName: w.display_name,
+            status: w.status,
+            filled: filledCountByWorker.get(w.id) ?? 0,
+          }))}
+          totalModules={totalModules}
+          isSuperAdmin={isSuperAdmin}
+        />
       </div>
     </main>
   );

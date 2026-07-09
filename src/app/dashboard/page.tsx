@@ -129,9 +129,9 @@ export default async function WorkerDashboardPage() {
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-12">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
             <h1 className="font-display text-2xl font-medium">{worker.display_name}</h1>
             <Seal status={serviceType.status} />
           </div>

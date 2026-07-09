@@ -96,7 +96,7 @@ export default function BookingAvailabilityAdminForm({
         <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">Weekly availability</p>
         <div className="mt-2.5 flex flex-col gap-2">
           {blocks.map((b, i) => (
-            <div key={i} className="flex items-center gap-2">
+            <div key={i} className="flex flex-wrap items-center gap-2">
               <span className="h-[5px] w-[5px] shrink-0 rounded-full bg-emerald" />
               <select
                 value={b.dayOfWeek}

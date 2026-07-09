@@ -37,3 +37,32 @@ export async function createAdminAction(input: {
   if (insertError) return { ok: false, error: insertError.message };
   return { ok: true, data: { tempPassword } };
 }
+
+export async function deleteAdminAction(adminId: string): Promise<ActionResult<true>> {
+  const currentRole = await getCurrentUserRole();
+  if (currentRole.kind !== "admin" || currentRole.role !== "super_admin") {
+    return { ok: false, error: "Only super admins can remove admins." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { data: target, error: fetchError } = await supabase
+    .from("admins")
+    .select("user_id")
+    .eq("id", adminId)
+    .single();
+  if (fetchError || !target) return { ok: false, error: fetchError?.message ?? "Admin not found." };
+
+  if (target.user_id === user?.id) {
+    return { ok: false, error: "You can't remove your own admin access." };
+  }
+
+  const adminClient = createAdminClient();
+  const { error: deleteError } = await adminClient.auth.admin.deleteUser(target.user_id);
+  if (deleteError) return { ok: false, error: deleteError.message };
+
+  return { ok: true, data: true };
+}

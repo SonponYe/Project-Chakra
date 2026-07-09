@@ -109,3 +109,42 @@ export async function createWorkerAction(input: {
   if (insertError) return { ok: false, error: insertError.message };
   return { ok: true, data: { id: worker.id, tempPassword } };
 }
+
+export async function deleteServiceTypeAction(serviceTypeId: string): Promise<ActionResult<true>> {
+  const role = await getCurrentUserRole();
+  if (role.kind !== "admin" || role.role !== "super_admin") {
+    return { ok: false, error: "Only super admins can delete service types." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("service_types").delete().eq("id", serviceTypeId);
+
+  if (error) {
+    if (error.code === "23503") {
+      return { ok: false, error: "Remove all workers from this category before deleting it." };
+    }
+    return { ok: false, error: error.message };
+  }
+  return { ok: true, data: true };
+}
+
+export async function deleteWorkerAction(workerId: string): Promise<ActionResult<true>> {
+  const role = await getCurrentUserRole();
+  if (role.kind !== "admin" || role.role !== "super_admin") {
+    return { ok: false, error: "Only super admins can delete workers." };
+  }
+
+  const supabase = await createClient();
+  const { data: worker, error: fetchError } = await supabase
+    .from("workers")
+    .select("user_id")
+    .eq("id", workerId)
+    .single();
+  if (fetchError || !worker) return { ok: false, error: fetchError?.message ?? "Worker not found." };
+
+  const adminClient = createAdminClient();
+  const { error: deleteError } = await adminClient.auth.admin.deleteUser(worker.user_id);
+  if (deleteError) return { ok: false, error: deleteError.message };
+
+  return { ok: true, data: true };
+}

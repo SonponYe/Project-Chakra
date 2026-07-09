@@ -31,7 +31,7 @@ export default async function AdminServicesPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-12">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-widest text-muted">Admin</p>
           <h1 className="mt-2 font-display text-2xl font-medium">Service types</h1>

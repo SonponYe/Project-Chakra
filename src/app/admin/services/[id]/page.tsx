@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentUserRole } from "@/lib/auth";
 import { getModuleDefinition } from "@/lib/modules/registry";
 import EditDraftModules from "./EditDraftModules";
 import ProposeNewVersion from "./ProposeNewVersion";
+import DeleteServiceTypeButton from "./DeleteServiceTypeButton";
 import { extractCustomFieldDefinitions } from "@/lib/modules/schemas";
 import type { ModuleConfigEntry } from "@/lib/supabase/database.types";
 import Seal from "@/components/ui/Seal";
@@ -16,6 +18,8 @@ export default async function ServiceTypeDetailPage({
 }) {
   const { id } = await params;
   const supabase = await createClient();
+  const role = await getCurrentUserRole();
+  const isSuperAdmin = role.kind === "admin" && role.role === "super_admin";
 
   const { data: serviceType } = await supabase
     .from("service_types")
@@ -47,9 +51,12 @@ export default async function ServiceTypeDetailPage({
         <Seal status={serviceType.status} />
       </div>
 
-      <Link href={`/admin/services/${serviceType.id}/workers`} className={`${btnClass("ghost", "sm")} mt-5`}>
-        Manage workers
-      </Link>
+      <div className="mt-5 flex items-center gap-2">
+        <Link href={`/admin/services/${serviceType.id}/workers`} className={btnClass("ghost", "sm")}>
+          Manage workers
+        </Link>
+        {isSuperAdmin && <DeleteServiceTypeButton serviceTypeId={serviceType.id} name={serviceType.name} />}
+      </div>
 
       {serviceType.status === "draft" ? (
         <div className="mt-9">

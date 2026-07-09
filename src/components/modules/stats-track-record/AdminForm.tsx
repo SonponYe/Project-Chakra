@@ -46,7 +46,7 @@ export default function StatsTrackRecordAdminForm({
   return (
     <div className="flex flex-col gap-3">
       {stats.map((s, i) => (
-        <div key={i} className={`${CARD} grid grid-cols-3 gap-2`}>
+        <div key={i} className={`${CARD} grid grid-cols-1 gap-2 sm:grid-cols-3`}>
           <input
             placeholder="Label"
             value={s.label}
